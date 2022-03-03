@@ -39,7 +39,7 @@ function displayTemperature(response, unit) {
 }
 
 function getTemperatureByUnit(unit) {
-    let apiUrl = `http://api.openweathermap.org/data/2.5/weather?q=${getCity()}&units=${unit}&appid=${apiKey}`;
+    let apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${getCity()}&units=${unit}&appid=${apiKey}`;
     axios.get(apiUrl).then(function(response) {
         displayTemperature(response, unit)
     });
@@ -61,14 +61,14 @@ function displayTemperatureLocation(response) {
 }
 
 function getCityNameFromLocation(lat, long) {
-    const apiUrl = `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}8&lon=${long}&appid=${apiKey}`
+    const apiUrl = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}8&lon=${long}&appid=${apiKey}`
     return axios.get(apiUrl).then(function(response) {
         return response.data[0].name;
     })
 }
 
 function showLocationTemp(city) {
-    const apiUrl = `http://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
+    const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
     let unit = "metric"
     axios.get(apiUrl).then(function(response) {
         displayTemperature(response, unit)
