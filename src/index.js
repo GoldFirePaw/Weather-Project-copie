@@ -1,80 +1,101 @@
+const apiKey = "0f687b8ce7b2a635f662f6784501a1b1";
+
 let now = new Date();
-let days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+let days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday"
+];
 let day = days[now.getDay()];
 let hour = now.getHours();
-let mins = ('0' + now.getMinutes()).slice(-2);
-let date = document.querySelector("#date");
-let time = document.querySelector("#hour");
+let mins = ("0" + now.getMinutes()).slice(-2);
 
-date.innerHTML = day;
-time.innerHTML = `${hour}:${mins}`
+// HTML elements
+const cityElement = document.querySelector("#city")
+const temperatureElement = document.querySelector("#temperature");
+const geolocationElement = document.querySelector("#geolocation")
+const convertFarButton = document.querySelector("#convertFar")
+const convertCelButton = document.querySelector("#convertCel")
+const form = document.querySelector("#search-form");
+const cityInput = document.querySelector("#citySearch")
+const dateElement = document.querySelector("#date");
+const timeElement = document.querySelector("#hour");
 
-function displayCity(event) {
-    event.preventDefault()
-    let searchedCity = document.querySelector("#citySearch");
-    let city = document.querySelector("#city");
-    city.innerHTML = searchedCity.value
+function getCity() {
+    return cityInput.value;
 }
 
-function getRandomArbitrary(min, max) {
-    return Math.round(Math.random() * (max - min) + min);
-}
-
-
-let randomTemperatureArray = document.querySelectorAll(".randomTemperature")
-
-for (let randomTemperature of randomTemperatureArray) {
-    randomTemperature.innerHTML = getRandomArbitrary(10, 20);
-}
-
-const numbers = [1, 8, 7, 10, 87, 5, 46, 98, 2, 77]
-const oddNumbers = []
-const evenNumbers = []
-
-
-function isEven(number) {
-    return number % 2 === 0
-}
-
-for (let number of numbers) {
-    if (isEven(number)) {
-        evenNumbers.push(number);
+function displayTemperature(response, unit) {
+    let currentTemp = Math.round(response.data.main.temp);
+    if (unit === "metric") {
+        temperatureElement.innerHTML = `${currentTemp} °C`;
     } else {
-        oddNumbers.push(number)
+        temperatureElement.innerHTML = `${currentTemp} °F`;
     }
 }
 
-
-console.log(oddNumbers.sort((a, b) => a - b))
-console.log(evenNumbers.sort((a, b) => a - b))
-
-
-/*let submit = document.querySelector("#search-form");
-submit.addEventListener("submit", displayCity);
-
-let temperatureA = document.querySelector("#temperatureA");
-let temperatureB = document.querySelector("#temperatureB");
-temperatureA.innerHTML = `17°C`;
-temperatureB.innerHTML = `30°C`;
-
-
-let farhenheitA = (17 * 9 / 5) + 32;
-let farhenheitB = (30 * 9 / 5) + 32;
-let celciusA = 17;
-let celciusB = 30;
-
-function convertToFarhenheit() {
-    temperatureA.innerHTML = `${farhenheitA}°F`;
-    temperatureB.innerHTML = `${farhenheitB}°F`;
+function getTemperatureByUnit(unit) {
+    let apiUrl = `http://api.openweathermap.org/data/2.5/weather?q=${getCity()}&units=${unit}&appid=${apiKey}`;
+    axios.get(apiUrl).then(function(response) {
+        displayTemperature(response, unit)
+    });
 }
 
-function convertToCelcius() {
-    temperatureA.innerHTML = `${celciusA}°C `;
-    temperatureB.innerHTML = `${celciusB}°C `;
+function convertToFarhenheit(event) {
+    event.preventDefault();
+    getTemperatureByUnit("imperial")
 }
 
-let convertCel = document.querySelector("#convertCel");
-let convertFar = document.querySelector("#convertFar");
+function convertToCelcius(event) {
+    event.preventDefault();
+    getTemperatureByUnit("metric")
+}
 
-convertCel.addEventListener("click", convertToCelcius);
-convertFar.addEventListener("click", convertToFarhenheit);*/
+function displayTemperatureLocation(response) {
+    let currentTemp = Math.round(response.data.main.temp);
+    temperatureElement.innerHTML = `${currentTemp} °C`;
+}
+
+function getCityNameFromLocation(lat, long) {
+    const apiUrl = `http://api.openweathermap.org/geo/1.0/reverse?lat=${lat}8&lon=${long}&appid=${apiKey}`
+    return axios.get(apiUrl).then(function(response) {
+        return response.data[0].name;
+    })
+}
+
+function showLocationTemp(city) {
+    const apiUrl = `http://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${apiKey}`;
+    let unit = "metric"
+    axios.get(apiUrl).then(function(response) {
+        displayTemperature(response, unit)
+    });
+}
+
+function handlePosition(position) {
+    const lat = position.coords.latitude;
+    const long = position.coords.longitude;
+    getCityNameFromLocation(lat, long).then(function(city) {
+        cityElement.innerHTML = city;
+        showLocationTemp(city);
+    });
+}
+
+function getLocation() {
+    navigator.geolocation.getCurrentPosition(handlePosition)
+}
+
+dateElement.innerHTML = day;
+timeElement.innerHTML = `${hour}:${mins}`;
+
+form.addEventListener("submit", function(event) {
+    event.preventDefault();
+    cityElement.innerHTML = getCity();
+    getTemperatureByUnit("metric");
+});
+convertFarButton.addEventListener("click", convertToFarhenheit)
+convertCelButton.addEventListener("click", convertToCelcius)
+geolocationElement.addEventListener("click", getLocation);
